@@ -19,7 +19,7 @@ app.post('/convert', async (req, res) => {
     const response = await axios({ url: videoUrl, method: 'GET', responseType: 'stream' });
     await new Promise((resolve) => response.data.pipe(writer).on('finish', resolve));
 
-    const cmd = `ffmpeg -i ${inputPath} -vf "scale=iw*min(1920/iw\,1080/ih):ih*min(1920/iw\,1080/ih),pad=1920:1080:(ow-iw)/2:(oh-ih)/2" -y ${outputPath}`;
+    const cmd = `ffmpeg -i ${inputPath} -vf "scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih),pad=1920:1080:(ow-iw)/2:(oh-ih)/2" -y ${outputPath}`;
     console.log('Running FFmpeg command:', cmd);
     await new Promise((resolve, reject) => {
       exec(cmd, (err) => (err ? reject(err) : resolve()));
