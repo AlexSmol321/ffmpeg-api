@@ -1,10 +1,10 @@
-FROM node:18
-
-RUN apt-get update && apt-get install -y ffmpeg
+FROM node:20-slim
 
 WORKDIR /app
-COPY . .
 
+COPY package.json .
 RUN npm install
 
-CMD ["node", "index.js"]
+COPY . .
+
+CMD ["npm", "start"]
