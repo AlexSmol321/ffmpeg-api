@@ -14,18 +14,22 @@ app.post('/convert', async (req, res) => {
   const outputPath = `/tmp/output_${id}.mp4`;
 
   try {
+    console.log('Downloading video:', videoUrl);
     const writer = fs.createWriteStream(inputPath);
     const response = await axios({ url: videoUrl, method: 'GET', responseType: 'stream' });
     await new Promise((resolve) => response.data.pipe(writer).on('finish', resolve));
 
-    const ffmpegCommand = `ffmpeg -i ${inputPath} -vf "scale=w=if(gt(a,16/9),1920,trunc(1080*a/2)*2):h=if(gt(a,16/9),trunc(1920/a/2)*2,1080),pad=1920:1080:(ow-iw)/2:(oh-ih)/2" -y ${outputPath}`;
+    const cmd = `ffmpeg -i ${inputPath} -vf "scale=w=if(gt(a,16/9),1920,trunc(1080*a/2)*2):h=if(gt(a,16/9),trunc(1920/a/2)*2,1080),pad=1920:1080:(ow-iw)/2:(oh-ih)/2" -y ${outputPath}`;
+    console.log('Running FFmpeg command:', cmd);
     await new Promise((resolve, reject) => {
-      exec(ffmpegCommand, (err) => (err ? reject(err) : resolve()));
+      exec(cmd, (err) => (err ? reject(err) : resolve()));
     });
 
+    console.log('Sending file:', outputPath);
     res.sendFile(outputPath);
   } catch (e) {
-    res.status(500).send({ error: e.message });
+    console.error('Conversion failed:', e.message);
+    res.status(500).json({ error: e.message });
   } finally {
     setTimeout(() => {
       if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
@@ -34,4 +38,5 @@ app.post('/convert', async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT || 3000, () => console.log('Server running'));
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Server running on port ${port}`));
